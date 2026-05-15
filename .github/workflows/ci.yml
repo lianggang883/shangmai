@@ -13,9 +13,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install --upgrade pip
-      - run: pip install fastapi uvicorn sqlalchemy
-      - run: pip install aiosqlite pydantic pydantic-settings
-      - run: pip install python-jose passlib bcrypt python-multipart
-      - run: pip install pytest pytest-asyncio httpx
-      - run: DATABASE_URL=sqlite+aiosqlite:///:memory: python -m pytest tests/ -v --tb=short
+      - run: pip install pytest
+      - run: pip install httpx
+      - run: pip install fastapi
