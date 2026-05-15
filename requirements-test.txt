@@ -1,3 +1,5 @@
+setuptools>=68.0
+wheel
 fastapi>=0.100.0
 uvicorn>=0.20.0
 sqlalchemy[asyncio]>=2.0.0
