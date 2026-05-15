@@ -15,6 +15,6 @@ jobs:
           python-version: "3.12"
       - run: pip install fastapi uvicorn sqlalchemy
       - run: pip install aiosqlite pydantic pydantic-settings
-      - run: pip install python-jose passlib bcrypt
+      - run: pip install python-jose passlib "bcrypt<4.1"
       - run: pip install python-multipart pytest pytest-asyncio httpx
       - run: python -m pytest tests/ -v --tb=short
