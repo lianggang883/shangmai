@@ -17,4 +17,4 @@ jobs:
       - run: pip install aiosqlite pydantic pydantic-settings
       - run: pip install python-jose passlib bcrypt
       - run: pip install python-multipart pytest pytest-asyncio httpx
-      - run: echo test done
+      - run: python -m pytest tests/ -v --tb=short
