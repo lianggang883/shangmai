@@ -13,4 +13,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest
+      - run: pip install --upgrade pip
+      - run: pip install fastapi uvicorn sqlalchemy aiosqlite pydantic pydantic-settings python-jose passlib bcrypt python-multipart pytest pytest-asyncio httpx
+      - run: python -m pytest tests/ -v --tb=short
