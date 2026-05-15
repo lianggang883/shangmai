@@ -16,3 +16,5 @@ jobs:
       - run: pip install --upgrade pip
       - run: pip install fastapi uvicorn sqlalchemy aiosqlite pydantic pydantic-settings python-jose passlib bcrypt python-multipart pytest pytest-asyncio httpx
       - run: python -m pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
