@@ -9,6 +9,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "step 1"
       - uses: actions/checkout@v4
-      - run: echo "step 3 checkout done"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn sqlalchemy aiosqlite pydantic pydantic-settings python-jose passlib bcrypt python-multipart pytest pytest-asyncio httpx
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
