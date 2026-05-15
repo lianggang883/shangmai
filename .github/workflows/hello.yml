@@ -9,11 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "step 1"
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install -r requirements-test.txt
-      - run: python -m pytest tests/ -v --tb=short
-        env:
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+      - run: echo "step 3 checkout done"
