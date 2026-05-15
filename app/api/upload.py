@@ -8,7 +8,7 @@ import os, time, uuid, hashlib, json
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query, Form
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -170,8 +170,7 @@ class FileRecord(BaseModel):
     thumbnail_url: Optional[str]
     created_at: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class FileListResponse(BaseModel):
     total: int

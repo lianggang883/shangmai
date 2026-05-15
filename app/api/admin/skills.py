@@ -11,6 +11,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.admin_user import AdminUser
+from app.api.admin.auth import get_current_admin
 from app.models.agent import SkillInvocation, SkillInvocationStatus
 
 router = APIRouter(prefix="/skills", tags=["管理员-SKILL监控"])
@@ -61,6 +63,7 @@ def _skill_type_key(skill_type: str) -> str:
 @router.get("/stats", response_model=SkillStatsResponse)
 async def get_skill_stats(
     days: int = Query(7, ge=1, le=30),
+    admin: AdminUser = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     since = datetime.now(timezone.utc) - timedelta(days=days)

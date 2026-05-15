@@ -11,6 +11,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.admin_user import AdminUser
+from app.api.admin.auth import get_current_admin
 from app.models.member import Member, MemberStatus
 from app.models.activity import Activity, ActivityStatus
 from app.models.billing import ActionPowerTransaction, TxType
@@ -37,7 +39,10 @@ class DashboardStatsResponse(BaseModel):
 
 
 @router.get("/stats", response_model=DashboardStatsResponse)
-async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
+async def get_dashboard_stats(
+    admin: AdminUser = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
     today = datetime.now(timezone.utc).date()
     today_start = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
 

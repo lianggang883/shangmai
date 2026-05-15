@@ -13,6 +13,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.admin_user import AdminUser
+from app.api.admin.auth import get_current_admin
 from app.models.member import Member
 
 router = APIRouter(prefix="/notifications", tags=["管理员-通知"])
@@ -43,7 +45,11 @@ class NotificationStore:
 
 
 @router.post("")
-async def send_notification(body: SendNotificationRequest, db: AsyncSession = Depends(get_db)):
+async def send_notification(
+    body: SendNotificationRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
     # 统计目标会员数
     query = select(func.count(Member.id))
     if body.target == "active":
@@ -77,6 +83,7 @@ async def send_notification(body: SendNotificationRequest, db: AsyncSession = De
 
 @router.get("", response_model=NotificationListResponse)
 async def list_notifications(
+    admin: AdminUser = Depends(get_current_admin),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):

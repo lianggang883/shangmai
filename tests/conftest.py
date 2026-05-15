@@ -6,18 +6,19 @@ import asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-# 先导入 app.models.base 的 Base，再导入 AdminUser
-# 这样 AdminUser 会注册到同一个 Base.metadata
-from app.models.base import Base as _RealBase
-# app.models 会创建第二个 Base，我们不用它
-from app.models import Base  # noqa — 这是 conftest 实际用的 Base
-# 确保所有模型加载
-from app.models.admin_user import AdminUser  # noqa
-
-# 问题是 AdminUser 注册到了 app.models.base.Base 而非 app.models.Base
-# 修复：将 admin_users 表定义手动添加到 app.models.Base.metadata
-# 或者更简单：直接用 app.models.base.Base 作为测试的 Base
-Base = _RealBase  # 使用 AdminUser 注册到的那个 Base
+from app.models.base import Base  # 唯一的 Base 定义
+from app.models.admin_user import AdminUser  # noqa — 确保加载
+# 导入所有模型确保注册到 Base.metadata
+from app.models import (  # noqa
+    Member, MemberRole, MemberInterest, MemberDiagnosis,
+    Relationship, Interaction,
+    CooperationProject, ProjectTask,
+    ActionPowerAccount, ActionPowerTransaction, Subscription,
+    GameProfile, GameTask, GameTaskProgress, GameLeaderboard,
+    SkillInvocation, AgentTask,
+    KnowledgeGraphNode, KnowledgeGraphEdge,
+    ReferralRecord, UploadedFile, Activity, ActivityParticipant,
+)
 
 from app.config import settings  # noqa: E402
 from app.dependencies.auth import create_access_token  # noqa: E402
@@ -36,27 +37,8 @@ async def engine():
         "sqlite+aiosqlite:///:memory:", echo=False,
         connect_args={"check_same_thread": False},
     )
-    # 确保所有模型表被创建
-    # 先导入所有 app.models 子模块让它们注册到 _RealBase
-    from app.models import (  # noqa
-        Member, MemberRole, MemberInterest, MemberDiagnosis,
-        Relationship, Interaction,
-        CooperationProject, ProjectTask,
-        ActionPowerAccount, ActionPowerTransaction, Subscription,
-        GameProfile, GameTask, GameTaskProgress, GameLeaderboard,
-        SkillInvocation, AgentTask,
-        KnowledgeGraphNode, KnowledgeGraphEdge,
-        ReferralRecord, UploadedFile, Activity, ActivityParticipant,
-    )
-    # 这些模型注册到了 app.models.Base（第二个 Base），需要手动合并
-    # 最简单的办法：用 _RealBase 的 metadata，把缺失的表补上
-    from app.models import Base as AppBase  # noqa
-    for table_name, table_obj in AppBase.metadata.tables.items():
-        if table_name not in _RealBase.metadata.tables:
-            _RealBase.metadata._add_table(table_name, table_obj.schema, table_obj)
-
     async with eng.begin() as conn:
-        await conn.run_sync(_RealBase.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield eng
     await eng.dispose()
 

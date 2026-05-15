@@ -6,11 +6,13 @@ GET /admin/activities
 PUT /admin/activities/{id}/close
 """
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.admin_user import AdminUser
+from app.api.admin.auth import get_current_admin
 from app.models.activity import Activity, ActivityStatus
 
 router = APIRouter(prefix="/activities", tags=["管理员-活动"])
@@ -26,8 +28,7 @@ class ActivityItem(BaseModel):
     current_participants: int
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ActivityListResponse(BaseModel):
@@ -41,6 +42,7 @@ class ReviewRequest(BaseModel):
 
 @router.get("", response_model=ActivityListResponse)
 async def list_activities(
+    admin: AdminUser = Depends(get_current_admin),
     status: str = Query(None, description="筛选状态: open/closed/cancelled"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -81,6 +83,7 @@ async def list_activities(
 async def review_activity(
     activity_id: str,
     body: ReviewRequest,
+    admin: AdminUser = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Activity).where(Activity.id == activity_id))
