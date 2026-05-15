@@ -1,6 +1,9 @@
 """
 共享 conftest — SQLite 内存数据库 + 测试客户端
 """
+import os
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+
 import pytest
 import asyncio
 from httpx import AsyncClient, ASGITransport
