@@ -170,6 +170,21 @@ async def generate_report(req: ReportRequest, db: AsyncSession = Depends(get_db)
     return report
 
 
+
+
+@router.get("/types", response_model=ApiResponse)
+async def get_report_types():
+    """获取可用报告类型列表"""
+    return success(data={
+        "types": [
+            {"type": "daily", "name": "日报", "desc": "每日运营数据汇总"},
+            {"type": "weekly", "name": "周报", "desc": "每周趋势分析"},
+            {"type": "member", "name": "会员分析", "desc": "会员增长与活跃度"},
+            {"type": "revenue", "name": "收入报告", "desc": "行动力充值与消费"},
+            {"type": "activity", "name": "活动报告", "desc": "活动参与效果统计"},
+        ]
+    })
+
 @router.get("/list")
 async def list_reports():
     """获取历史报告列表"""

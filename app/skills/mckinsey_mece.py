@@ -26,7 +26,11 @@ class McKinseyMeceSkill(BaseSkill):
     def version(self) -> str: return "2.0.0"
 
     def validate(self, input_data: SkillInput) -> ValidationResult:
-        mi = MeceInput(**input_data.model_dump())
+        data = input_data.model_dump()
+        ctx = data.get("context", {})
+        data["problem"] = ctx.get("problem", "")
+        data["framework_hint"] = ctx.get("framework_hint")
+        mi = MeceInput(**data)
         errors = []
         if not mi.problem or len(mi.problem.strip()) < 5: errors.append("问题至少5字")
         return ValidationResult(is_valid=len(errors)==0, errors=errors)
@@ -35,7 +39,11 @@ class McKinseyMeceSkill(BaseSkill):
     def get_required_skills(self) -> list[SkillType]: return [SkillType.INDUSTRY_CHAIN]
 
     async def execute(self, input_data: SkillInput) -> SkillOutput:
-        mi = MeceInput(**input_data.model_dump())
+        data = input_data.model_dump()
+        ctx = data.get("context", {})
+        data["problem"] = ctx.get("problem", "")
+        data["framework_hint"] = ctx.get("framework_hint")
+        mi = MeceInput(**data)
         suitability = await self._assess_suitability(mi.problem, mi.context)
         if suitability["score"] < 0.3:
             return SkillOutput(success=False, data={"suitability": suitability, "reason": "不适合MECE"}, action_power_used=2, next_skill_hint=SkillType.COACH)

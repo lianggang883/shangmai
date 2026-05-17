@@ -120,42 +120,6 @@ async def search_members(
     })
 
 
-@router.get("/{member_id}", response_model=ApiResponse)
-async def get_member_detail(
-    member_id: str,
-    db: AsyncSession = Depends(get_db),
-    current_member: Member = Depends(get_current_member),
-):
-    """会员详情"""
-    result = await db.execute(
-        select(Member).where(Member.id == member_id)
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        return fail(message="会员不存在")
-    return success({
-        "id": member.id,
-        "name": member.name,
-        "company": member.company,
-        "title": member.title,
-        "phone": member.phone,
-        "avatar": member.avatar,
-        "level": member.level,
-        "action_power_balance": member.action_power_balance,
-        "action_power_frozen": member.action_power_frozen,
-    })
-
-
-
-
-
-def generate_referral_code(member_id: str) -> str:
-    """从 member_id 生成 8 位引荐码"""
-    import base64
-    b = base64.urlsafe_b64encode(member_id.replace("-", "").encode())[:6]
-    return b.decode().upper() + "SH"
-
-
 @router.get("/me", response_model=ApiResponse)
 async def get_my_profile(
     member: Member = Depends(get_current_member),
@@ -197,6 +161,43 @@ async def get_my_profile(
         updated_at=member.updated_at.isoformat() if member.updated_at else None,
     )
     return success(data=profile.model_dump())
+
+
+@router.get("/{member_id}", response_model=ApiResponse)
+async def get_member_detail(
+    member_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_member: Member = Depends(get_current_member),
+):
+    """会员详情"""
+    result = await db.execute(
+        select(Member).where(Member.id == member_id)
+    )
+    member = result.scalar_one_or_none()
+    if not member:
+        return fail(message="会员不存在")
+    return success({
+        "id": member.id,
+        "name": member.name,
+        "company": member.company,
+        "title": member.title,
+        "phone": member.phone,
+        "avatar": member.avatar,
+        "level": member.level,
+        "action_power_balance": member.action_power_balance,
+        "action_power_frozen": member.action_power_frozen,
+    })
+
+
+
+
+
+def generate_referral_code(member_id: str) -> str:
+    """从 member_id 生成 8 位引荐码"""
+    import base64
+    b = base64.urlsafe_b64encode(member_id.replace("-", "").encode())[:6]
+    return b.decode().upper() + "SH"
+
 
 
 @router.put("/me", response_model=ApiResponse)

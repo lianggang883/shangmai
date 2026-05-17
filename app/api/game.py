@@ -55,6 +55,26 @@ async def get_game_profile(
     })
 
 
+
+
+@router.get("/checkin/status", response_model=ApiResponse)
+async def get_checkin_status(
+    member: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取今日签到状态"""
+    from datetime import date
+    profile = await _get_or_create_profile(member.id, db)
+    today = date.today()
+    checked = profile.last_checkin == today
+    streak = profile.daily_checkin_streak or 0
+    return success(data={
+        "checked_today": checked,
+        "streak": streak,
+        "last_checkin": profile.last_checkin.isoformat() if profile.last_checkin else None,
+        "can_checkin": not checked,
+    })
+
 @router.post("/checkin", response_model=ApiResponse)
 async def daily_checkin(
     member: Member = Depends(get_current_member),
@@ -292,6 +312,29 @@ async def trigger_action(
     })
 
 
+
+
+
+@router.get("/level", response_model=ApiResponse)
+async def get_my_level(
+    member: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取我的等级信息"""
+    profile = await _get_or_create_profile(member.id, db)
+    from app.services.game.level_system import LEVEL_TABLE
+    lv = min(profile.level or 1, 6)
+    info = LEVEL_TABLE.get(lv)
+    next_info = LEVEL_TABLE.get(lv + 1)
+    return success(data={
+        "current_level": lv,
+        "level_name": info.name if info else f"Lv{lv}",
+        "exp": profile.exp or 0,
+        "exp_required": info.exp_required if info else 100,
+        "exp_next": next_info.exp_required if next_info else 0,
+        "streak": profile.daily_checkin_streak or 0,
+        "monthly_free_ap": info.monthly_free_ap if info else 1000,
+    })
 
 @router.get("/levels", response_model=ApiResponse)
 async def get_level_rules():

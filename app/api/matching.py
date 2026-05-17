@@ -76,6 +76,34 @@ async def get_relations(
     return success(data={"relations": result_rels, "total": len(result_rels)})
 
 
+
+@router.get("", response_model=ApiResponse)
+async def list_matches(
+    member: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+    status: str = Query("pending"),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=50),
+):
+    """匹配列表（兼容前端调用）"""
+    offset = (page - 1) * size
+    query = select(Relationship).where(
+        Relationship.member_id == member.id,
+    )
+    if status != "all":
+        try:
+            status_enum = RelationshipStatus(status)
+            query = query.where(Relationship.status == status_enum.value)
+        except ValueError:
+            pass  # fallback: no filter
+    query = query.order_by(Relationship.created_at.desc()).offset(offset).limit(size)
+    result = await db.execute(query)
+    items = result.scalars().all()
+    total = (await db.execute(
+        select(func.count()).select_from(Relationship).where(Relationship.member_id == member.id)
+    )).scalar() or 0
+    return success(data={"items": [r.to_dict() for r in items], "total": total, "page": page})
+
 @router.post("/trigger", response_model=ApiResponse)
 async def trigger_matching(
     req: MatchTriggerRequest = Body(default=MatchTriggerRequest()),

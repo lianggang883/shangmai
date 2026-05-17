@@ -18,7 +18,7 @@ app.add_middleware(CORSMiddleware,
     allow_origins=["*"] if settings.DEBUG else [],
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-from app.api import auth, roles, resources, members, matching, relations, cooperations, skills, game, agents, activities, billing, upload, reports, referral
+from app.api import auth, roles, resources, members, matching, relations, cooperations, skills, game, agents, activities, billing, upload, reports, referral, notifications
 from app.api import admin
 app.include_router(roles.router)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
@@ -40,6 +40,7 @@ app.include_router(activities.router, prefix="/api/v1/activities", tags=["Activi
 app.include_router(billing.router, prefix="/api/v1/billing", tags=["Billing"])
 app.include_router(upload.router, prefix="/api/v1/upload", tags=["Upload"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(referral.router, prefix="/api/v1/referral", tags=["Referral"])
 
 @app.get("/")

@@ -16,6 +16,38 @@ from app.services.game import game_engine
 router = APIRouter()
 
 
+
+
+@router.get("/info", response_model=ApiResponse)
+async def get_referral_info(
+    member: Member = Depends(get_current_member),
+    db: AsyncSession = Depends(get_db),
+):
+    """引荐综合信息（前端统一入口）"""
+    code = str(member.id)[:8].upper()
+    total_referrals = (await db.execute(
+        select(func.count()).select_from(ReferralRecord)
+        .where(ReferralRecord.referrer_id == member.id)
+    )).scalar() or 0
+    total_earned = (await db.execute(
+        select(func.coalesce(func.sum(ReferralRecord.total_earned), 0))
+        .where(ReferralRecord.referrer_id == member.id)
+    )).scalar() or 0
+    return success(data={
+        "referral_code": code,
+        "referral_link": f"http://114.132.65.96/register?ref={code}",
+        "total_referrals": total_referrals,
+        "total_earned": int(total_earned),
+        "rate": 0.10,
+        "max_rate": 0.30,
+        "rules": {
+            "min_withdrawal": 100,
+            "rate_tier1": 0.10,
+            "rate_tier2": 0.20,
+            "rate_tier3": 0.30,
+        },
+    })
+
 @router.get("/my-code", response_model=ApiResponse)
 async def get_my_referral_code(
     member: Member = Depends(get_current_member),

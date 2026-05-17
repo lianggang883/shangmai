@@ -39,23 +39,26 @@ async def get_balance(
 
 @router.post("/recharge")
 async def recharge(
-    amount: int = 50, pay_method: str = "wechat",
+    amount: int = 50,
+    pay_method: str = "wechat",
     current_member: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
 ):
+    """充值行动力 - amount为元，按1元=10行动力换算"""
     if amount <= 0:
-        return fail(message="充值数量必须大于0")
+        return fail(message="充值金额必须大于0")
+    power = amount * 10  # 1元 = 10行动力
     account = await get_or_create_account(str(current_member.id), db)
-    current_member.action_power_balance += amount
-    account.purchased += amount
+    current_member.action_power_balance += power
+    account.purchased += power
     new_balance = current_member.action_power_balance
     db.add(ActionPowerTransaction(
         account_id=str(account.id), tx_type=TxType.RECHARGE.value,
-        amount=amount, balance_after=new_balance,
-        description=f"充值{amount}行动力({pay_method})",
+        amount=power, balance_after=new_balance,
+        description=f"充值¥{amount}→{power}行动力({pay_method})",
     ))
     await db.commit()
-    return success(data={"amount": amount, "balance": new_balance})
+    return success(data={"amount": power, "yuan": amount, "balance": new_balance})
 
 
 @router.get("/transactions")
